@@ -1,34 +1,35 @@
 #include <Bluepad32.h>
 
-#define LF_MOTOR_DIR 32
-#define LF_MOTOR_PWM 33
+#define LF_MOTOR_DIR 2
+#define LF_MOTOR_PWM 17
 #define LF_MOTOR_REVERSE 0
 
-#define RF_MOTOR_DIR 25
-#define RF_MOTOR_PWM 26
+#define RF_MOTOR_DIR 4
+#define RF_MOTOR_PWM 21
 #define RF_MOTOR_REVERSE 0
 
-#define LB_MOTOR_INA 27
-#define LB_MOTOR_INB 14
-#define LB_MOTOR_PWM 12
+#define LB_MOTOR_INA 19
+#define LB_MOTOR_INB 18
+#define LB_MOTOR_PWM 5
 #define LB_MOTOR_REVERSE 0
 
-#define LM_MOTOR_INA 17
-#define LM_MOTOR_INB 16
-#define LM_MOTOR_PWM 4
+#define LM_MOTOR_INA 27
+#define LM_MOTOR_INB 14
+#define LM_MOTOR_PWM 12
 #define LM_MOTOR_REVERSE 0
 
-#define RB_MOTOR_INA 19
-#define RB_MOTOR_INB 18
-#define RB_MOTOR_PWM 5
+#define RB_MOTOR_INA 25
+#define RB_MOTOR_INB 13
+#define RB_MOTOR_PWM 26
 #define RB_MOTOR_REVERSE 0
 
-#define RM_MOTOR_INA 23
-#define RM_MOTOR_INB 22
-#define RM_MOTOR_PWM 2
+#define RM_MOTOR_INA 32
+#define RM_MOTOR_INB 15
+#define RM_MOTOR_PWM 33
 #define RM_MOTOR_REVERSE 0
 
-#define SPEED_MULTIPLIER 256
+#define SPEED_MULTIPLIER -128
+#define TURN_SPEED_MULTIPLIER -64
 
 // Range [-255, 255]
 void motor_speed1(uint8_t dir_pin, uint8_t pwm_pin, int speed, bool reverse) {
@@ -125,19 +126,19 @@ void failsafe() {
 }
 
 void setup() {
-    pinMode(LF_MOTOR_DIR, OUTPUT);
-    pinMode(LF_MOTOR_PWM, OUTPUT);
+    int output_pins[] = {
+        LF_MOTOR_DIR, LF_MOTOR_PWM,
+        RF_MOTOR_DIR, RF_MOTOR_PWM,
 
-    pinMode(RF_MOTOR_DIR, OUTPUT);
-    pinMode(RF_MOTOR_PWM, OUTPUT);
+        LM_MOTOR_INA, LM_MOTOR_INB, LM_MOTOR_PWM,
+        RM_MOTOR_INA, RM_MOTOR_INB, RM_MOTOR_PWM,
 
-    pinMode(LB_MOTOR_INA, OUTPUT);
-    pinMode(LB_MOTOR_INB, OUTPUT);
-    pinMode(LB_MOTOR_PWM, OUTPUT);
-
-    pinMode(RB_MOTOR_INA, OUTPUT);
-    pinMode(RB_MOTOR_INB, OUTPUT);
-    pinMode(RB_MOTOR_PWM, OUTPUT);
+        LB_MOTOR_INA, LB_MOTOR_INB, LB_MOTOR_PWM,
+        RB_MOTOR_INA, RB_MOTOR_INB, RB_MOTOR_PWM,
+    };
+    for (int i = 0; i < sizeof(output_pins) / sizeof(int); i++) {
+        pinMode(output_pins[i], OUTPUT);
+    }
 
     failsafe();
 
@@ -165,14 +166,20 @@ void loop() {
         if (!controller || !controller->isConnected()) {
             failsafe();
         } else {
-            int32_t left = (controller->axisY() - 4) * SPEED_MULTIPLIER / 512;
-            int32_t right = (controller->axisRY() - 4) * SPEED_MULTIPLIER / 512;
+            int forward = (controller->axisRY() - 4) * SPEED_MULTIPLIER / 512;
+            int side = (controller->axisX() - 4) * SPEED_MULTIPLIER / 512;
+            int left = forward - side;
+            int right = forward + side;
+            // int left = (controller->axisY() - 4) * SPEED_MULTIPLIER / 512;
+            // int right = (controller->axisRY() - 4) * SPEED_MULTIPLIER / 512;
             lf_motor_speed(left);
             lm_motor_speed(left);
             lb_motor_speed(left);
             rf_motor_speed(right);
             rm_motor_speed(right);
             rb_motor_speed(right);
+
+            printf("left: %d, right: %d\n", left, right);
         }
     }
     delay(10);
