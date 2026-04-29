@@ -42,7 +42,7 @@ static void print_encoders(void *arg) {
 }
 static void IRAM_ATTR encoder_isr(void *arg) {
     int index = *(int *)arg;
-    int state = gpio_get_level(encoder_b_gpios[index]);
+    uint8_t state = gpio_get_level(encoder_b_gpios[index]);
 
     BaseType_t higherTaskWoken = pdFALSE;
     xQueueSendFromISR(encoder_queues[index], &state, &higherTaskWoken);
@@ -51,7 +51,7 @@ static void IRAM_ATTR encoder_isr(void *arg) {
 static void encoder_receiver(void *arg) {
     int index = *(int *)arg;
     for (;;) {
-        int state;
+        uint8_t state;
         if (xQueueReceive(encoder_queues[index], &state, portMAX_DELAY)) {
             xSemaphoreTake(encoder_mutexes[index], portMAX_DELAY);
             encoder_counts[index] += state ? encoder_dirs[index] : -encoder_dirs[index];
@@ -61,7 +61,7 @@ static void encoder_receiver(void *arg) {
 }
 static void init_isr() {
     for (int i = 0; i < 4; i++) {
-        encoder_queues[i] = xQueueCreate(0x1000, sizeof(int));
+        encoder_queues[i] = xQueueCreate(0x1000, sizeof(uint8_t));
         encoder_mutexes[i] = xSemaphoreCreateMutex();
     }
 
