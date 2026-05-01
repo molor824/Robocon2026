@@ -9,23 +9,22 @@
 #include "encoder.h"
 
 void motor_test(void *arg) {
-    // Test 4 motors seperately
+    // Test 4 motors
     for (;;) {
-        for (int i = 0; i < WHEEL_COUNT; i++) {
-            LOGI("Motor: %d", i);
-            // Sweep from 0 to 255
-            for (int s = 0; s < 256; s++) {
+        // Sweep from 0 to 255
+        for (int s = 0; s < 256; s++) {
+            for (int i = 0; i < WHEEL_COUNT; i++)
                 wheel_set_speed(i, s);
-                vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
-            }
-            // Sweep back
-            for (int s = 256; s > 0; s--) {
-                wheel_set_speed(i, s - 1);
-                vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
-            }
-            // Wait 1 second
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
         }
+        // Sweep back
+        for (int s = 256; s > 0; s--) {
+            for (int i = 0; i < WHEEL_COUNT; i++)
+                wheel_set_speed(i, s - 1);
+            vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
+        }
+        // Wait 1 second
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 void print_encoders(void *arg) {
@@ -42,7 +41,6 @@ void print_encoders(void *arg) {
 void app_main(void)
 {
     ESP_ERROR_CHECK(gpio_install_isr_service(0));
-    ESP_ERROR_CHECK(ledc_fade_func_install(0));
 
     ledc_timer_config_t timer = {
         .duty_resolution = LEDC_TIMER_8_BIT,

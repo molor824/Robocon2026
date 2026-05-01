@@ -16,19 +16,17 @@ const int wheel_directions[WHEEL_COUNT] = {1, 1, 1, 1};
 
 void wheel_set_speed(int index, int speed) {
     if (speed == 0) {
-        ESP_ERROR_CHECK(ledc_set_duty_and_update(SPEED_MODE, wheel_a_channels[index], 255, 0));
-        ESP_ERROR_CHECK(ledc_set_duty_and_update(SPEED_MODE, wheel_b_channels[index], 255, 0));
+        ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_a_channels[index], 255));
+        ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_b_channels[index], 255));
     } else {
         int abs_speed = speed < 0 ? -speed : speed;
         if (abs_speed > 255) abs_speed = 255;
         int pos_dir = wheel_directions[index];
-        ESP_ERROR_CHECK(
-            ledc_set_duty_and_update(SPEED_MODE, wheel_a_channels[index], (speed < 0 ? !pos_dir : pos_dir) * abs_speed, 0)
-        );
-        ESP_ERROR_CHECK(
-            ledc_set_duty_and_update(SPEED_MODE, wheel_b_channels[index], (speed < 0 ? pos_dir : !pos_dir) * abs_speed, 0)
-        );
+        ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_a_channels[index], (speed < 0 ? !pos_dir : pos_dir) * abs_speed));
+        ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_b_channels[index], (speed < 0 ? pos_dir : !pos_dir) * abs_speed));
     }
+    ESP_ERROR_CHECK(ledc_update_duty(SPEED_MODE, wheel_a_channels[index]));
+    ESP_ERROR_CHECK(ledc_update_duty(SPEED_MODE, wheel_b_channels[index]));
 }
 void wheel_init() {
     gpio_config_t config = {
