@@ -44,7 +44,7 @@ void app_main(void)
 
     ledc_timer_config_t timer = {
         .duty_resolution = LEDC_TIMER_8_BIT,
-        .freq_hz = 1000,
+        .freq_hz = 20000,
         .speed_mode = SPEED_MODE,
         .timer_num = PWM_TIMER,
     };
