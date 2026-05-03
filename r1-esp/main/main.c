@@ -14,13 +14,15 @@ void motor_test(void *arg) {
         // Sweep from 0 to 255
         for (int s = 0; s < 256; s++) {
             for (int i = 0; i < WHEEL_COUNT; i++)
-                wheel_set_speed(i, s);
+                wheel_set_motor_speed(i, s);
+            wheel_motor_update();
             vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
         }
         // Sweep back
         for (int s = 256; s > 0; s--) {
             for (int i = 0; i < WHEEL_COUNT; i++)
-                wheel_set_speed(i, s - 1);
+                wheel_set_motor_speed(i, s - 1);
+            wheel_motor_update();
             vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
         }
         // Wait 1 second
@@ -40,6 +42,8 @@ void print_encoders(void *arg) {
 }
 void app_main(void)
 {
+    spi_init();
+
     ESP_ERROR_CHECK(gpio_install_isr_service(0));
 
     ledc_timer_config_t timer = {
