@@ -5,8 +5,8 @@
 
 #define WHEEL_COUNT 4
 
-const int wheel_ina_bits[WHEEL_COUNT] = {0, 2, 4, 6};
-const int wheel_inb_bits[WHEEL_COUNT] = {1, 3, 5, 7};
+const int wheel_ina_bits[WHEEL_COUNT] = {0, 2, 6, 4};
+const int wheel_inb_bits[WHEEL_COUNT] = {1, 3, 7, 5};
 
 const ledc_channel_t wheel_pwm_channels[WHEEL_COUNT] = {LEDC_CHANNEL_0, LEDC_CHANNEL_1, LEDC_CHANNEL_2, LEDC_CHANNEL_3};
 const gpio_num_t wheel_pwm_pins[WHEEL_COUNT] = {GPIO_NUM_27, GPIO_NUM_14, GPIO_NUM_17, GPIO_NUM_16};
@@ -30,8 +30,8 @@ void wheel_motor_update() {
         data |= ((speed <= 0) << wheel_inb_bits[i]);
 
         // Temporarily disable PWM until spi has sent data
-        ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_pwm_channels[i], 0));
-        ESP_ERROR_CHECK(ledc_update_duty(SPEED_MODE, wheel_pwm_channels[i]));
+        // ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_pwm_channels[i], 0));
+        // ESP_ERROR_CHECK(ledc_update_duty(SPEED_MODE, wheel_pwm_channels[i]));
     }
     spi_send_data(data);
 

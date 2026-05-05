@@ -16,14 +16,20 @@ void motor_test(void *arg) {
             for (int i = 0; i < WHEEL_COUNT; i++)
                 wheel_set_motor_speed(i, s);
             wheel_motor_update();
-            vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
+            vTaskDelay(8 / portTICK_PERIOD_MS);
+        }
+        for (int s = 255; s > -256; s--) {
+            for (int i = 0; i < WHEEL_COUNT; i++)
+                wheel_set_motor_speed(i, s);
+            wheel_motor_update();
+            vTaskDelay(8 / portTICK_PERIOD_MS);
         }
         // Sweep back
-        for (int s = 256; s > 0; s--) {
+        for (int s = -255; s <= 0; s++) {
             for (int i = 0; i < WHEEL_COUNT; i++)
-                wheel_set_motor_speed(i, s - 1);
+                wheel_set_motor_speed(i, s);
             wheel_motor_update();
-            vTaskDelay(1000 / 256 / portTICK_PERIOD_MS);
+            vTaskDelay(8 / portTICK_PERIOD_MS);
         }
         // Wait 1 second
         vTaskDelay(1000 / portTICK_PERIOD_MS);
