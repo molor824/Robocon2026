@@ -1,7 +1,11 @@
-#ifndef __WHEEL_H__
-#define __WHEEL_H__
+#pragma once
 
-#include "main.h"
+#include <driver/ledc.h>
+#include <driver/gpio.h>
+
+#include "spi.h"
+#include "ledc.h"
+#include "tag.h"
 
 #define WHEEL_COUNT 4
 
@@ -14,33 +18,21 @@ const gpio_num_t wheel_pwm_pins[WHEEL_COUNT] = {GPIO_NUM_27, GPIO_NUM_14, GPIO_N
 // Motor direction of positive speed, describing INA pin
 const int wheel_directions[WHEEL_COUNT] = {1, 1, 1, 1};
 
-int motor_speeds[WHEEL_COUNT];
-
 void wheel_set_motor_speed(int index, int speed) {
     speed *= wheel_directions[index];
-    if (speed > 255) speed = 255;
-    else if (speed < -255) speed = -255;
-    motor_speeds[index] = speed;
+
+    int abs_speed = speed < 0 ? -speed : speed;
+    if (abs_speed > 255) abs_speed = 255;
+    
+    spi_data &= ~(1 << wheel_ina_bits[index] | 1 << wheel_inb_bits[index]);
+    spi_data |= ((speed >= 0) << wheel_ina_bits[index]) | ((speed <= 0) << wheel_inb_bits[index]);
+    ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_pwm_channels[index], abs_speed));
 }
 void wheel_motor_update() {
-    spi_data_t data = 0;
     for (int i = 0; i < WHEEL_COUNT; i++) {
-        int speed = motor_speeds[i];
-        data |= ((speed >= 0) << wheel_ina_bits[i]);
-        data |= ((speed <= 0) << wheel_inb_bits[i]);
-
-        // Temporarily disable PWM until spi has sent data
-        // ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_pwm_channels[i], 0));
-        // ESP_ERROR_CHECK(ledc_update_duty(SPEED_MODE, wheel_pwm_channels[i]));
-    }
-    spi_send_data(data);
-
-    for (int i = 0; i < WHEEL_COUNT; i++) {
-        int speed = motor_speeds[i];
-        int abs_speed = speed < 0 ? -speed : speed;
-        ESP_ERROR_CHECK(ledc_set_duty(SPEED_MODE, wheel_pwm_channels[i], abs_speed));
         ESP_ERROR_CHECK(ledc_update_duty(SPEED_MODE, wheel_pwm_channels[i]));
     }
+    spi_sync();
 }
 void wheel_init() {
     gpio_config_t config = {
@@ -64,5 +56,3 @@ void wheel_init() {
 
     LOGI("Initialized wheel.");
 }
-
-#endif

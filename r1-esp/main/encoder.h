@@ -1,10 +1,9 @@
-#ifndef __ISR_H__
-#define __ISR_H__
-
-#include "main.h"
-#include "wheel.h"
+#pragma once
 
 #include <stdatomic.h>
+#include <driver/gpio.h>
+
+#include "wheel.h"
 
 const gpio_num_t encoder_a_pins[WHEEL_COUNT] = {GPIO_NUM_36, GPIO_NUM_39, GPIO_NUM_34, GPIO_NUM_35};
 const gpio_num_t encoder_b_pins[WHEEL_COUNT] = {GPIO_NUM_32, GPIO_NUM_33, GPIO_NUM_25, GPIO_NUM_26};
@@ -48,5 +47,3 @@ void encoder_init() {
 
     LOGI("Initialized Encoder.");
 }
-
-#endif
