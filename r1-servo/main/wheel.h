@@ -35,14 +35,14 @@ void wheel_motor_update() {
     spi_sync();
 }
 void wheel_init() {
-    gpio_config_t config = {
-        .mode = GPIO_MODE_OUTPUT,
-    };
+    // gpio_config_t config = {
+    //     .mode = GPIO_MODE_OUTPUT,
+    // };
 
-    for (int i = 0; i < WHEEL_COUNT; i++) {
-        config.pin_bit_mask |= (1ULL << wheel_pwm_pins[i]);
-    }
-    ESP_ERROR_CHECK(gpio_config(&config));
+    // for (int i = 0; i < WHEEL_COUNT; i++) {
+    //     config.pin_bit_mask |= (1ULL << wheel_pwm_pins[i]);
+    // }
+    // ESP_ERROR_CHECK(gpio_config(&config));
 
     for (int i = 0; i < WHEEL_COUNT; i++) {
         ledc_channel_config_t config = {

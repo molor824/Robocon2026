@@ -8,7 +8,7 @@
 #include "tag.h"
 
 #define I2C_ADDRESS 69
-#define I2C_BUFLEN 0x1000
+#define I2C_BUF 1024
 
 // -PI, PI
 float shared_servo_positions[WHEEL_COUNT];
@@ -31,8 +31,9 @@ void i2c_init() {
         .sda_io_num = GPIO_NUM_21,
         .scl_io_num = GPIO_NUM_22,
         .clk_source = I2C_CLK_SRC_DEFAULT,
-        .send_buf_depth = I2C_BUFLEN,
         .slave_addr = I2C_ADDRESS,
+        .receive_buf_depth = I2C_BUF,
+        .send_buf_depth = I2C_BUF,
         .addr_bit_len = I2C_ADDR_BIT_LEN_7,  // 7-bit address
     };
     ESP_ERROR_CHECK(i2c_new_slave_device(&conf, &i2c));

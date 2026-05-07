@@ -1,8 +1,6 @@
-#include "motor.h"
 #pragma once
 
-#include "motor.h"
-#include "spi.h"
+#include "i2c.h"
 
 namespace Ctl {
   ControllerPtr controller;
@@ -11,10 +9,9 @@ namespace Ctl {
   int lastUpdatedTime;
 
   void failsafe() {
-    for (int i = 0; i < Motor::COUNT; i++) {
-      Motor::setSpeed(i, 0);
-    }
-    Spi::sync();
+    for (int i = 0; i < I2C::SERVO_COUNT; i++)
+      I2C::servoPositions[i] = 0.0f;
+    I2C::sync();
   }
 
   void onConnectedController(ControllerPtr ctl) {

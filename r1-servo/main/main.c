@@ -62,20 +62,14 @@ void print_encoders(void *arg) {
 void app_main(void)
 {
     ESP_ERROR_CHECK(gpio_install_isr_service(0));
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+
     ledc_init();
     spi_init();
     i2c_init();
 
     wheel_init();
     encoder_init();
-
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    wheel_init();
-    encoder_init();
-
-    // xTaskCreate(print_encoders, "Print encoders", 0x1000, NULL, 1, NULL);
-    // xTaskCreate(motor_test, "Motor Test", 0x1000, NULL, 2, NULL);
 
     pid_t pids[WHEEL_COUNT];
     for (int i = 0; i < WHEEL_COUNT; i++) {
