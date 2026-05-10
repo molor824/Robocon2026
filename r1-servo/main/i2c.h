@@ -11,7 +11,7 @@
 #define I2C_BUF 1024
 
 // -PI, PI
-float shared_servo_positions[WHEEL_COUNT];
+int shared_servo_positions[WHEEL_COUNT];
 portMUX_TYPE servo_lock = portMUX_INITIALIZER_UNLOCKED;
 i2c_slave_dev_handle_t i2c;
 
@@ -46,7 +46,7 @@ void i2c_init() {
     LOGI("I2C Initialized.");
 }
 
-void i2c_read_servo_positions(float *positions) {
+void i2c_read_servo_positions(int *positions) {
     portENTER_CRITICAL(&servo_lock);
     memcpy(positions, shared_servo_positions, sizeof(shared_servo_positions));
     portEXIT_CRITICAL(&servo_lock);

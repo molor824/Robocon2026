@@ -1,16 +1,17 @@
 #pragma once
 
-#include "Wire.h"
+#include <Wire.h>
 
 namespace I2C {
+  constexpr int COUNT = 4;
   constexpr int PIN_SCL = 22;
   constexpr int PIN_SDA = 21;
   constexpr int FREQ = 400000;
 
   constexpr int SERVO_ADDR = 69;
-  constexpr int SERVO_COUNT = 4;
 
-  float servoPositions[SERVO_COUNT] = {};
+  // -180 to 180
+  int servoPositions[COUNT] = {};
 
   void setup() {
     Wire.begin(PIN_SDA, PIN_SCL, FREQ);

@@ -12,39 +12,37 @@
 #include "encoder.h"
 #include "pid.h"
 
-#define MIN_DELTA_TICK 1
+#define MIN_DELTA_TICK 10
 
-#define SERVO_P 100.0f
+#define SERVO_P 1.0f
 #define SERVO_I 0.0f
 #define SERVO_D 0.0f
-
-#define COUNT_PER_ROTATION 5000
 
 void motor_test(void *arg) {
     // Test 4 motors
     for (;;) {
-        // Sweep from 0 to 255
-        for (int s = 0; s < 256; s++) {
-            for (int i = 0; i < WHEEL_COUNT; i++)
+        for (int i = 0; i < WHEEL_COUNT; i++) {
+            printf("motor: %d\n", i);
+            // Sweep from 0 to 255
+            for (int s = 0; s < 256; s++) {
                 wheel_set_motor_speed(i, s);
-            wheel_motor_update();
-            vTaskDelay(8 / portTICK_PERIOD_MS);
-        }
-        for (int s = 255; s > -256; s--) {
-            for (int i = 0; i < WHEEL_COUNT; i++)
+                wheel_motor_update();
+                vTaskDelay(4 / portTICK_PERIOD_MS);
+            }
+            for (int s = 255; s > -256; s--) {
                 wheel_set_motor_speed(i, s);
-            wheel_motor_update();
-            vTaskDelay(8 / portTICK_PERIOD_MS);
-        }
-        // Sweep back
-        for (int s = -255; s <= 0; s++) {
-            for (int i = 0; i < WHEEL_COUNT; i++)
+                wheel_motor_update();
+                vTaskDelay(4 / portTICK_PERIOD_MS);
+            }
+            // Sweep back
+            for (int s = -255; s <= 0; s++) {
                 wheel_set_motor_speed(i, s);
-            wheel_motor_update();
-            vTaskDelay(8 / portTICK_PERIOD_MS);
+                wheel_motor_update();
+                vTaskDelay(4 / portTICK_PERIOD_MS);
+            }
+            // Wait 1 second
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
-        // Wait 1 second
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 void print_encoders(void *arg) {
@@ -55,7 +53,7 @@ void print_encoders(void *arg) {
         }
         LOGI("Encoders: %d, %d, %d, %d", counts[0], counts[1], counts[2], counts[3]);
 
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
 
@@ -71,27 +69,34 @@ void app_main(void)
     wheel_init();
     encoder_init();
 
+    // xTaskCreate(motor_test, "motor_test", 0x1000, NULL, 2, NULL);
+    // xTaskCreate(print_encoders, "print_encoders", 0x1000, NULL, 1, NULL);
+    // return;
+
     pid_t pids[WHEEL_COUNT];
     for (int i = 0; i < WHEEL_COUNT; i++) {
         pids[i] = pid_new(SERVO_P, SERVO_I, SERVO_D);
     }
     
     TickType_t lastElapsed = xTaskGetTickCount();
+    const float dt = (float)pdTICKS_TO_MS(MIN_DELTA_TICK) * 0.001f;
 
     for (;;) {
         vTaskDelayUntil(&lastElapsed, MIN_DELTA_TICK);
-        TickType_t diff = xTaskGetTickCount() - lastElapsed;
-        lastElapsed += diff;
-        float dt = (float)pdTICKS_TO_MS(diff) * 0.001f;
 
-        float positions[WHEEL_COUNT];
+        int positions[WHEEL_COUNT];
         i2c_read_servo_positions(positions);
 
+        printf("positions: ");
+
         for (int i = 0; i < WHEEL_COUNT; i++) {
-            float measured = (float)atomic_load(&encoder_counts[i]) * (float)((2 * M_PI) / COUNT_PER_ROTATION);
-            float speed = pid_correct(&pids[i], positions[i] - measured, dt);
+            int error = positions[i] - atomic_load(&encoder_counts[i]);
+            printf("%d, ", positions[i]);
+            float speed = pid_correct(&pids[i], error, dt);
             wheel_set_motor_speed(i, roundf(speed));
         }
         wheel_motor_update();
+
+        printf("\n");
     }
 }
