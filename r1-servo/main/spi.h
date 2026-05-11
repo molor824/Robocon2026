@@ -25,6 +25,10 @@ void spi_init() {
         .sclk_io_num = SPI_SCK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
+        .data4_io_num = -1,
+        .data5_io_num = -1,
+        .data6_io_num = -1,
+        .data7_io_num = -1,
         .max_transfer_sz = sizeof(spi_data),
     };
 
