@@ -24,6 +24,10 @@ SemaphoreHandle_t i2c_data_received;
 bool i2c_slave_receive_cb(i2c_slave_dev_handle_t, const i2c_slave_rx_done_event_data_t *evt, void *) {
     if (evt->length < sizeof(i2c_shared_speeds)) return false;
     portENTER_CRITICAL_ISR(&i2c_lock);
+    int *buffer = (int *)evt->buffer;
+    for (int i = 0; i < WHEEL_COUNT; i++) {
+        i2c_shared_speeds[i] = buffer[i];
+    }
     memcpy(i2c_shared_speeds, evt->buffer, sizeof(i2c_shared_speeds));
     portEXIT_CRITICAL_ISR(&i2c_lock);
 
@@ -32,11 +36,16 @@ bool i2c_slave_receive_cb(i2c_slave_dev_handle_t, const i2c_slave_rx_done_event_
     return taskWoken;
 }
 
-void i2c_get_speeds(int speeds[WHEEL_COUNT]) {
-    xSemaphoreTake(i2c_data_received, portMAX_DELAY);
-    portENTER_CRITICAL(&i2c_lock);
-    memcpy(speeds, i2c_shared_speeds, sizeof(i2c_shared_speeds));
-    portEXIT_CRITICAL(&i2c_lock);
+bool i2c_get_speeds(int speeds[WHEEL_COUNT], int timeout) {
+    BaseType_t success = xSemaphoreTake(i2c_data_received, timeout);
+    if (success) {
+        portENTER_CRITICAL(&i2c_lock);
+        for (int i = 0; i < WHEEL_COUNT; i++) {
+            speeds[i] = i2c_shared_speeds[i];
+        }
+        portEXIT_CRITICAL(&i2c_lock);
+    }
+    return success;
 }
 
 void i2c_init() {

@@ -49,7 +49,7 @@ void print_encoders(void *arg) {
     for (;;) {
         int counts[WHEEL_COUNT];
         for (int i = 0; i < WHEEL_COUNT; i++) {
-            counts[i] = atomic_load(&encoder_counts[i]);
+            counts[i] = encoder_get_count(i);
         }
         LOGI("Encoders: %d, %d, %d, %d", counts[0], counts[1], counts[2], counts[3]);
 
@@ -90,7 +90,7 @@ void app_main(void)
         printf("positions: ");
 
         for (int i = 0; i < WHEEL_COUNT; i++) {
-            int error = positions[i] - atomic_load(&encoder_counts[i]);
+            int error = positions[i] - encoder_get_count(i);
             printf("%d, ", positions[i]);
             float speed = pid_correct(&pids[i], error, dt);
             wheel_set_motor_speed(i, roundf(speed));
