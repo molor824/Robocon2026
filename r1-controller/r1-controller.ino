@@ -9,9 +9,10 @@
 constexpr int CENTER_X = 4, CENTER_Y = 4;
 constexpr int MOTOR_ORDERS[I2C::COUNT] = {3, 0, 1, 2};
 constexpr int ROT_DIRECTIONS[I2C::COUNT][2] = {{1, -1}, {-1, -1}, {-1, 1}, {1, 1}};
-constexpr float SPEED_MULTIPLIER = 0.5f;
-constexpr float ROT_MULTIPLIER = 0.2f;
-constexpr float MIN_ACCEPTABLE_SPEED = 50.0f;
+constexpr float SPEED_MULTIPLIER = 0.2f;
+constexpr float ROT_MULTIPLIER = 0.1f;
+constexpr float MAX_SPEED = 100.0f;
+constexpr float MIN_ACCEPTABLE_SPEED = 16.0f;
 
 uint32_t elapsed;
 
@@ -110,6 +111,8 @@ void servoControl() {
 
       float targetRadian = atan2f(-x, y);
       float magnitude = sqrtf(x * x + y * y);
+
+      if (magnitude > MAX_SPEED) magnitude = MAX_SPEED;
 
       Wheel::escs[motor].writeMicroseconds(roundf(Wheel::MINIMUM_MS + magnitude));
       if (magnitude >= MIN_ACCEPTABLE_SPEED)

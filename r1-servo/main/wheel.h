@@ -8,6 +8,7 @@
 #include "tag.h"
 
 #define WHEEL_COUNT 4
+#define MAX_SPEED 100
 
 const int wheel_ina_bits[WHEEL_COUNT] = {0, 2, 6, 4};
 const int wheel_inb_bits[WHEEL_COUNT] = {1, 3, 7, 5};
@@ -22,7 +23,7 @@ void wheel_set_motor_speed(int index, int speed) {
     speed *= wheel_directions[index];
 
     int abs_speed = speed < 0 ? -speed : speed;
-    if (abs_speed > 255) abs_speed = 255;
+    if (abs_speed > MAX_SPEED) abs_speed = MAX_SPEED;
     
     spi_data &= ~(1 << wheel_ina_bits[index] | 1 << wheel_inb_bits[index]);
     spi_data |= ((speed >= 0 ? 1 : 0) << wheel_ina_bits[index]) | ((speed <= 0 ? 1 : 0) << wheel_inb_bits[index]);

@@ -14,7 +14,7 @@
 
 #define MIN_DELTA_TICK 10
 
-#define SERVO_P 1.0f
+#define SERVO_P 0.2f
 #define SERVO_I 0.0f
 #define SERVO_D 0.0f
 
@@ -87,11 +87,12 @@ void app_main(void)
         int positions[WHEEL_COUNT];
         i2c_read_servo_positions(positions);
 
-        printf("positions: ");
+        printf("encoders: ");
 
         for (int i = 0; i < WHEEL_COUNT; i++) {
-            int error = positions[i] - encoder_get_count(i);
-            printf("%d, ", positions[i]);
+            int measured = encoder_get_count(i);
+            int error = positions[i] - measured;
+            printf("%d, ", measured);
             float speed = pid_correct(&pids[i], error, dt);
             wheel_set_motor_speed(i, roundf(speed));
         }

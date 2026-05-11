@@ -17,7 +17,7 @@ namespace Wheel {
   constexpr int MAXIMUM_MS = 2000;
 
   constexpr int ESC_PINS[I2C::COUNT] = {32, 33, 25, 26};
-  constexpr int COUNTS_PER_REV[I2C::COUNT] = {1900, 1900, 1900, 1900};
+  constexpr int COUNTS_PER_REV[I2C::COUNT] = {4000, 4000, 4000, 4000};
 
   Servo escs[I2C::COUNT];
   float servoRadians[I2C::COUNT];

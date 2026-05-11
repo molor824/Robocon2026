@@ -12,6 +12,8 @@ const gpio_num_t encoder_b_pins[WHEEL_COUNT] = {GPIO_NUM_36, GPIO_NUM_34, GPIO_N
 pcnt_unit_handle_t encoder_units[WHEEL_COUNT] = {};
 atomic_int encoder_offsets[WHEEL_COUNT] = {};
 
+const int encoder_directions[WHEEL_COUNT] = {-1, -1, -1, -1};
+
 bool IRAM_ATTR encoder_overflow_cb(pcnt_unit_handle_t unit, const pcnt_watch_event_data_t *data, void *arg) {
     int index = *(int *)arg;
     atomic_fetch_add(&encoder_offsets[index], data->watch_point_value);
@@ -64,6 +66,5 @@ void encoder_init() {
 int encoder_get_count(int index) {
     int count = 0;
     ESP_ERROR_CHECK(pcnt_unit_get_count(encoder_units[index], &count));
-    return atomic_load(&encoder_offsets[index]) + count;
+    return (atomic_load(&encoder_offsets[index]) + count) * encoder_directions[index];
 }
-
