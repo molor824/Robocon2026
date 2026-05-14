@@ -1,18 +1,21 @@
 #include <Bluepad32.h>
+
 #include "controller.h"
 #include "i2c.h"
 #include "wheel.h"
+#include "shifter.h"
+#include "upper.h"
+#include "cylinder.h"
 
 // #define TEST_MOTOR_ORDER
 // #define TEST_ENCODER
 
-constexpr int CENTER_X = 4, CENTER_Y = 4;
-constexpr int MOTOR_ORDERS[I2C::COUNT] = {3, 0, 1, 2};
-constexpr int ROT_DIRECTIONS[I2C::COUNT][2] = {{1, -1}, {-1, -1}, {-1, 1}, {1, 1}};
-constexpr float SPEED_MULTIPLIER = 0.2f;
-constexpr float ROT_MULTIPLIER = 0.1f;
-constexpr float MAX_SPEED = 100.0f;
-constexpr float MIN_ACCEPTABLE_SPEED = 16.0f;
+constexpr int MOTOR_ORDERS[Constant::WHEEL_COUNT] = {2, 3, 1, 0};
+constexpr int ROT_DIRECTIONS[Constant::WHEEL_COUNT][2] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+constexpr float SPEED_MULTIPLIER = 0.5f;
+constexpr float ROT_MULTIPLIER = 0.25f;
+constexpr float MAX_SPEED = 300.0f;
+constexpr float MIN_ACCEPTABLE_SPEED = 50.0f;
 
 uint32_t elapsed;
 
@@ -22,9 +25,9 @@ void testMotorOrder(float dt) {
   static float timer = 0;
   static int motorIndex = 0;
 
-  int motor = MOTOR_ORDERS[motorIndex % Wheel::COUNT];
+  int motor = MOTOR_ORDERS[motorIndex % Constant::WHEEL_COUNT];
 
-  for (int i = 0; i < Wheel::COUNT; i++) {
+  for (int i = 0; i < Constant::WHEEL_COUNT; i++) {
     // I2C::servoPositions[i] = i == motor ? (motorIndex % (Wheel::COUNT * 2) < Wheel::COUNT ? 180 : -180) : 0;
     I2C::servoPositions[i] = timer < (TIMER_DURATION / 2) ? 0 : 360;
   }
@@ -84,27 +87,25 @@ void testEncoder() {
 }
 #endif
 
-bool resetState = false;
+int prevDpad;
+int prevX, prevY, prevA;
 
 void servoControl() {
-  int cx = Ctl::controller->axisRX() - CENTER_X;
-  int cy = -(Ctl::controller->axisRY() - CENTER_Y);
-  int crot = Ctl::controller->axisX() - CENTER_X;
+  int cx = Ctl::controller->axisRX();
+  int cy = -Ctl::controller->axisRY();
+  int crot = Ctl::controller->axisX();
 
-  bool currentResetState = Ctl::controller->b();
-  bool resetPressed = currentResetState && !resetState;
-  resetState = currentResetState;
+  bool reset = Ctl::controller->b();
 
-  if (resetState) {
-    for (int i = 0; i < I2C::COUNT; i++) {
-      int motor = MOTOR_ORDERS[i];
-      Wheel::escs[motor].writeMicroseconds(Wheel::MINIMUM_MS);
-      Wheel::servoRadians[motor] = 0.0f;
-      I2C::servoPositions[motor] = 0;
+  if (reset) {
+    for (int i = 0; i < Constant::WHEEL_COUNT; i++) {
+      Wheel::escs[i].writeMicroseconds(Wheel::MINIMUM_MS);
+      Wheel::servoRadians[i] = 0.0f;
+      I2C::servoPositions[i] = 0;
     }
     I2C::sync();
   } else {
-    for (int i = 0; i < I2C::COUNT; i++) {
+    for (int i = 0; i < Constant::WHEEL_COUNT; i++) {
       int motor = MOTOR_ORDERS[i];
       float x = cx * SPEED_MULTIPLIER + ROT_DIRECTIONS[i][0] * ROT_MULTIPLIER * crot;
       float y = cy * SPEED_MULTIPLIER + ROT_DIRECTIONS[i][1] * ROT_MULTIPLIER * crot;
@@ -120,6 +121,35 @@ void servoControl() {
     }
     Wheel::sync();
   }
+
+  int brake = Ctl::controller->brake();
+  int throttle = Ctl::controller->throttle();
+  bool r1 = Ctl::controller->r1() != 0;
+  bool l1 = Ctl::controller->l1() != 0;
+  Upper::conveyorSpeed = (l1 - r1) * Upper::MAX_CONVEYOR_SPEED;
+  Upper::armSpeed = (throttle - brake) * Upper::MAX_ARM_SPEED / 1020;
+  Upper::sync();
+
+  int dpad = Ctl::controller->dpad();
+  int btnX = Ctl::controller->x();
+  int btnY = Ctl::controller->y();
+  int btnA = Ctl::controller->a();
+
+  if (btnA && !prevA) Cylinder::grab = !Cylinder::grab;
+  if (btnX && !prevX) Cylinder::extend = !Cylinder::extend;
+  if (btnY && !prevY) Cylinder::raise = !Cylinder::raise;
+
+  if ((dpad & 1) != 0 && (prevDpad & 1) == 0) Cylinder::wgrab2 = !Cylinder::wgrab2;
+  if ((dpad & 2) != 0 && (prevDpad & 2) == 0) Cylinder::wgrab1 = !Cylinder::wgrab1;
+  if ((dpad & 4) != 0 && (prevDpad & 4) == 0) Cylinder::wtilt = !Cylinder::wtilt;
+  if ((dpad & 8) != 0 && (prevDpad & 8) == 0) Cylinder::wlift = !Cylinder::wlift;
+
+  Cylinder::sync();
+
+  prevDpad = dpad;
+  prevA = btnA;
+  prevX = btnX;
+  prevY = btnY;
 }
 
 void setup() {
@@ -127,6 +157,8 @@ void setup() {
   Wheel::setup();
   Ctl::setup();
   I2C::setup();
+  Shifter::setup();
+  Upper::setup();
   elapsed = millis();
 }
 

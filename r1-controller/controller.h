@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wheel.h"
+#include "constants.h"
 #include "i2c.h"
 
 namespace Ctl {
@@ -10,8 +10,9 @@ namespace Ctl {
   int lastUpdatedTime;
 
   void failsafe() {
-    for (int i = 0; i < I2C::COUNT; i++)
+    for (int i = 0; i < Constant::WHEEL_COUNT; i++) {
       I2C::servoPositions[i] = 0;
+    }
     I2C::sync();
   }
 

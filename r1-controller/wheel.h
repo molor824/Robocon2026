@@ -16,20 +16,20 @@ namespace Wheel {
   constexpr int MINIMUM_MS = 1000;
   constexpr int MAXIMUM_MS = 2000;
 
-  constexpr int ESC_PINS[I2C::COUNT] = {32, 33, 25, 26};
-  constexpr int COUNTS_PER_REV[I2C::COUNT] = {4000, 4000, 4000, 4000};
+  constexpr int ESC_PINS[Constant::WHEEL_COUNT] = {32, 33, 25, 26};
+  constexpr int COUNTS_PER_REV[Constant::WHEEL_COUNT] = {4000, 4000, 4000, 4000};
 
-  Servo escs[I2C::COUNT];
-  float servoRadians[I2C::COUNT];
+  Servo escs[Constant::WHEEL_COUNT];
+  float servoRadians[Constant::WHEEL_COUNT];
 
   void setup() {
-    for (int i = 0; i < I2C::COUNT; i++) {
+    for (int i = 0; i < Constant::WHEEL_COUNT; i++) {
       escs[i].attach(ESC_PINS[i], MINIMUM_MS, MAXIMUM_MS);
       escs[i].writeMicroseconds(MINIMUM_MS);
     }
   }
   void sync() {
-    for (int i = 0; i < I2C::COUNT; i++) {
+    for (int i = 0; i < Constant::WHEEL_COUNT; i++) {
         int counter = I2C::servoPositions[i];
         const int CPR = COUNTS_PER_REV[i];
 

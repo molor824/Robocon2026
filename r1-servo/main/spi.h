@@ -8,10 +8,16 @@
 #define SPI_SCK GPIO_NUM_18
 #define SPI_CS GPIO_NUM_19
 
+#define SPI_FREQ 10000000
+
 uint8_t spi_data;
+uint8_t _old_spi_data;
 spi_device_handle_t spi;
 
 void spi_sync() {
+    if (spi_data == _old_spi_data) return;
+    _old_spi_data = spi_data;
+
     spi_transaction_t transaction = {
         .length = sizeof(spi_data) * 8,
         .tx_buffer = &spi_data,
@@ -33,7 +39,7 @@ void spi_init() {
     };
 
     spi_device_interface_config_t dev_config = {
-        .clock_speed_hz = 1000000,
+        .clock_speed_hz = SPI_FREQ,
         .spics_io_num = SPI_CS,
         .queue_size = 1,
     };

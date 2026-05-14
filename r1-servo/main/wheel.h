@@ -17,7 +17,7 @@ const ledc_channel_t wheel_pwm_channels[WHEEL_COUNT] = {LEDC_CHANNEL_0, LEDC_CHA
 const gpio_num_t wheel_pwm_pins[WHEEL_COUNT] = {GPIO_NUM_17, GPIO_NUM_16, GPIO_NUM_27, GPIO_NUM_14};
 
 // Motor direction of positive speed, describing INA pin
-const int wheel_directions[WHEEL_COUNT] = {1, -1, 1, 1};
+const int wheel_directions[WHEEL_COUNT] = {1, 1, -1, 1};
 
 void wheel_set_motor_speed(int index, int speed) {
     speed *= wheel_directions[index];

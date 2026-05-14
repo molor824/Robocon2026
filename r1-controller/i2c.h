@@ -2,8 +2,9 @@
 
 #include <Wire.h>
 
+#include "constants.h"
+
 namespace I2C {
-  constexpr int COUNT = 4;
   constexpr int PIN_SCL = 22;
   constexpr int PIN_SDA = 21;
   constexpr int FREQ = 400000;
@@ -11,7 +12,7 @@ namespace I2C {
   constexpr int SERVO_ADDR = 69;
 
   // -180 to 180
-  int servoPositions[COUNT] = {};
+  int servoPositions[Constant::WHEEL_COUNT] = {};
 
   void setup() {
     Wire.begin(PIN_SDA, PIN_SCL, FREQ);

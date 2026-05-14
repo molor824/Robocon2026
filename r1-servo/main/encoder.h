@@ -44,6 +44,9 @@ void encoder_init() {
         };
         ESP_ERROR_CHECK(pcnt_new_channel(encoder_units[i], &channel_cfg, &channel));
 
+        ESP_ERROR_CHECK(gpio_set_pull_mode(encoder_a_pins[i], GPIO_FLOATING));
+        ESP_ERROR_CHECK(gpio_set_pull_mode(encoder_b_pins[i], GPIO_FLOATING));
+
         ESP_ERROR_CHECK(pcnt_channel_set_edge_action(
             channel,
             PCNT_CHANNEL_EDGE_ACTION_INCREASE,
